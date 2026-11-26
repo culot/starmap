@@ -55,7 +55,7 @@ button:hover,button.active{background:linear-gradient(135deg,#17466a,#102a45);bo
 <div id="scene"></div>
 <div id="head" class="panel"><h1>STARMAP</h1><div class="sub">MILKY WAY EXPLORER · GAIA DR3 + SPIRAL-ARM TRACERS</div></div>
 <div id="controls" class="panel">
-  <button id="top" class="active">TOP</button><button id="edge">EDGE</button><button id="sun">SUN</button>
+  <button id="top" class="active">TOP</button><button id="edge">EDGE</button><button id="sun">SOLAR SYSTEM</button>
   <button id="arms" class="active">ARMS</button><button id="stars" class="active">STARS</button>
 </div>
 <div id="search" class="panel"><input id="searchInput" type="search" autocomplete="off" spellcheck="false" placeholder="Search Gaia DR3 source_id… or Sun / Sgr A*"><button id="searchButton">LOCATE</button><div id="searchResult"></div></div>
@@ -90,6 +90,11 @@ const galaxy=new THREE.Group();scene.add(galaxy);
 const starGroup=new THREE.Group();galaxy.add(starGroup);
 const armGroup=new THREE.Group();galaxy.add(armGroup);
 const markerGroup=new THREE.Group();galaxy.add(markerGroup);
+// Separate local coordinate system: 1 scene unit = 1 AU.
+const solarSystem=new THREE.Group();
+solarSystem.visible=false;
+scene.add(solarSystem);
+let viewMode='galaxy';
 const raycaster=new THREE.Raycaster();raycaster.params.Points.threshold=.11;
 const pointer=new THREE.Vector2();let starPoints=null,starPositions=null,starMeta=null;
 let starsVisible=true,armsVisible=true;
@@ -164,6 +169,114 @@ function textTexture(text){
  x.font='bold 42px system-ui';x.fillStyle='#d9f4ff';x.shadowColor='#58cfff';x.shadowBlur=12;x.fillText(text,8,60);
  const t=new THREE.CanvasTexture(c);return t;
 }
+function addSolarSystem(){
+  const orbitMaterial=new THREE.LineBasicMaterial({
+    color:0x31516d,
+    transparent:true,
+    opacity:.55
+  });
+
+  const sunMaterial=new THREE.MeshBasicMaterial({
+    color:0xffd27a
+  });
+
+  // The Sun is deliberately enlarged so it remains visible.
+  const sun=new THREE.Mesh(
+    new THREE.SphereGeometry(.55,32,24),
+    sunMaterial
+  );
+  solarSystem.add(sun);
+
+  const glow=new THREE.PointLight(0xffd18a,3,100);
+  solarSystem.add(glow);
+  solarSystem.add(
+    new THREE.AmbientLight(0xffffff,.45)
+  );
+
+  const planets=[
+    {name:'Mercury',a:.387,size:.075,color:0xb5a99b,angle:.4},
+    {name:'Venus',a:.723,size:.12,color:0xe6c18a,angle:2.1},
+    {name:'Earth',a:1.000,size:.13,color:0x4b9de8,angle:4.0},
+    {name:'Mars',a:1.524,size:.10,color:0xd66b4e,angle:5.2},
+    {name:'Jupiter',a:5.203,size:.28,color:0xd9ad83,angle:1.2},
+    {name:'Saturn',a:9.537,size:.24,color:0xe3d09b,angle:3.2},
+    {name:'Uranus',a:19.19,size:.19,color:0x8bd6df,angle:4.6},
+    {name:'Neptune',a:30.07,size:.19,color:0x527de0,angle:5.8}
+  ];
+
+  for(const p of planets){
+    // Circular orbit guides; distances are in AU.
+    const orbit=new THREE.Mesh(
+      new THREE.RingGeometry(p.a-.008,p.a+.008,160),
+      new THREE.MeshBasicMaterial({
+        color:0x31516d,
+        transparent:true,
+        opacity:.48,
+        side:THREE.DoubleSide
+      })
+    );
+    orbit.rotation.x=-Math.PI/2;
+    solarSystem.add(orbit);
+
+    const planet=new THREE.Mesh(
+      new THREE.SphereGeometry(p.size,24,18),
+      new THREE.MeshStandardMaterial({
+        color:p.color,
+        roughness:.85,
+        metalness:.02
+      })
+    );
+
+    planet.position.set(
+      Math.cos(p.angle)*p.a,
+      0,
+      Math.sin(p.angle)*p.a
+    );
+    planet.userData.name=p.name;
+    solarSystem.add(planet);
+
+    const label=new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map:textTexture(p.name),
+        transparent:true,
+        depthWrite:false
+      })
+    );
+    label.position.copy(planet.position);
+    label.position.y=p.size*2.5;
+    label.scale.set(1.5,.28,1);
+    solarSystem.add(label);
+
+    // Saturn's rings.
+    if(p.name==='Saturn'){
+      const rings=new THREE.Mesh(
+        new THREE.RingGeometry(.34,.52,64),
+        new THREE.MeshBasicMaterial({
+          color:0xc8b38e,
+          side:THREE.DoubleSide,
+          transparent:true,
+          opacity:.72
+        })
+      );
+      rings.rotation.x=-Math.PI/2;
+      rings.position.copy(planet.position);
+      solarSystem.add(rings);
+    }
+  }
+
+  const sunLabel=new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map:textTexture('SUN'),
+      transparent:true,
+      depthWrite:false
+    })
+  );
+  sunLabel.position.set(0,1.1,0);
+  sunLabel.scale.set(1.2,.3,1);
+  solarSystem.add(sunLabel);
+}
+
+addSolarSystem();
 addDisk();
 addMarker(0,0,0,0x7de4ff,.19,'Sagittarius A*');
 addMarker(-8.122,.0208,0,0xffdf91,.13,'Sun');
@@ -213,16 +326,93 @@ async function loadGaia(){
 }
 loadGaia();
 
+function animateCamera(position,target,onComplete){
+  const startPosition=camera.position.clone();
+  const startTarget=controls.target.clone();
+  let t=0;
+
+  function step(){
+    t=Math.min(1,t+.025);
+    const e=t*t*(3-2*t);
+
+    camera.position.copy(startPosition).lerp(position,e);
+    controls.target.copy(startTarget).lerp(target,e);
+
+    if(t<1){
+      requestAnimationFrame(step);
+    }else if(onComplete){
+      onComplete();
+    }
+  }
+
+  step();
+}
+
+function enterSolarSystem(){
+  if(viewMode==='solar')return;
+
+  viewMode='solar';
+  galaxy.visible=false;
+  solarSystem.visible=true;
+
+  camera.near=.001;
+  camera.far=150;
+  camera.updateProjectionMatrix();
+
+  controls.minDistance=.2;
+  controls.maxDistance=80;
+
+  document.querySelector('#scale').innerHTML=
+    'SOLAR SYSTEM SCALE<br>1 UNIT = 1 AU';
+
+  const position=new THREE.Vector3(0,12,40);
+  const target=new THREE.Vector3(0,0,0);
+
+  animateCamera(position,target);
+  status.textContent='SOLAR SYSTEM · PLANET SIZES EXAGGERATED';
+}
+
+function exitSolarSystem(kind='top'){
+  if(viewMode==='galaxy'){
+    setGalaxyCamera(kind);
+    return;
+  }
+
+  viewMode='galaxy';
+  solarSystem.visible=false;
+  galaxy.visible=true;
+
+  camera.near=.01;
+  camera.far=250;
+  camera.updateProjectionMatrix();
+
+  controls.minDistance=.12;
+  controls.maxDistance=100;
+
+  document.querySelector('#scale').innerHTML=
+    'GALACTOCENTRIC SCALE<br>1 UNIT = 1 kpc';
+
+  setGalaxyCamera(kind);
+}
+
+function setGalaxyCamera(kind){
+  const dest={
+    top:[0,27,.01],
+    edge:[0,.35,27]
+  }[kind] || [0,27,.01];
+
+  animateCamera(
+    new THREE.Vector3(...dest),
+    new THREE.Vector3(0,0,0)
+  );
+}
+
 function setView(kind){
- const dest={top:[0,27,.01],edge:[0,.35,27],sun:[-8.122,1.1,0]}[kind];
- const start=camera.position.clone(),target=new THREE.Vector3(...dest),startTarget=controls.target.clone();
- let t=0;
- function tween(){
-  t=Math.min(1,t+.025);const e=t*t*(3-2*t);
-  camera.position.copy(start).lerp(target,e);controls.target.copy(startTarget).lerp(new THREE.Vector3(0,0,0),e);
-  if(t<1)requestAnimationFrame(tween);
- }
- tween();
+  if(kind==='sun'){
+    enterSolarSystem();
+  }else{
+    exitSolarSystem(kind);
+  }
 }
 document.querySelector('#top').onclick=()=>setView('top');
 document.querySelector('#edge').onclick=()=>setView('edge');
@@ -276,9 +466,10 @@ async function locateSearch(){
  const raw=searchInput.value.trim();if(!raw)return;
  const key=raw.toLowerCase();
  if(key==='sun'||key==='sol'||key==='the sun'){
-  const p=new THREE.Vector3(-8.122,.0208,0);markSearchPoint(p,'Sun',0xffdf91);
-  showSearchMessage('Located the Sun · galactocentric distance 8.122 kpc');return;
- }
+  enterSolarSystem();
+  showSearchMessage('Located the Sun · Solar System view');
+  return;
+}
  if(key==='sgr a*'||key==='sagittarius a*'||key==='galactic centre'||key==='galactic center'){
   markSearchPoint(new THREE.Vector3(0,0,0),'Sagittarius A*');showSearchMessage('Located Sagittarius A* · Galactic Centre');return;
  }
