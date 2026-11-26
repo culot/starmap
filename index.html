@@ -225,21 +225,33 @@ function makePointCloud(positions,colors,sizes=1.0){
  geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
  if(colors)geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
  const mat=new THREE.ShaderMaterial({
-  uniforms:{uPixelRatio:{value:Math.min(devicePixelRatio,2)},uViewportHeight:{value:innerHeight},uPointSize:{value:sizes*3.2}},
-  vertexShader:`attribute vec3 color; varying vec3 vColor; varying float vDepth;
-   uniform float uPixelRatio; uniform float uViewportHeight; uniform float uPointSize;
-   void main(){vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.0);vDepth=-mv.z;
-    float focal=uViewportHeight/(2.0*tan(radians(48.0)*0.5));
-    gl_PointSize=clamp(uPointSize*focal/max(0.1,vDepth)*uPixelRatio,1.0,18.0);
-    gl_Position=projectionMatrix*mv;}`,
-  fragmentShader:`varying vec3 vColor; varying float vDepth;
-   void main(){vec2 q=gl_PointCoord-vec2(0.5);float r=length(q)*2.0;
-    if(r>1.0)discard;float nz=sqrt(max(0.0,1.0-r*r));
-    vec3 n=normalize(vec3(-q.x,-q.y,nz));vec3 light=normalize(vec3(-0.35,0.48,0.82));
-    float diffuse=0.38+0.72*max(dot(n,light),0.0);
-    float rim=pow(1.0-nz,2.4)*0.22;
-    float edge=1.0-smoothstep(0.82,1.0,r);
-    gl_FragColor=vec4(vColor*(diffuse+rim),edge*0.98);}`,
+  uniforms:{uPixelRatio:{value:Math.min(devicePixelRatio,2)},uViewportHeight:{value:innerHeight},uPointSize:{value:sizes*2.0}},
+
+vertexShader:`attribute vec3 color; varying vec3 vColor;
+ uniform float uPixelRatio; uniform float uViewportHeight; uniform float uPointSize;
+ void main(){
+   vColor=color;
+   vec4 mv=modelViewMatrix*vec4(position,1.0);
+   float focal=uViewportHeight/(2.0*tan(radians(48.0)*0.5));
+   gl_PointSize=clamp(uPointSize*focal/max(0.1,-mv.z)*uPixelRatio,1.0,6.0);
+   gl_Position=projectionMatrix*mv;
+ }`,
+
+fragmentShader:`varying vec3 vColor;
+ void main(){
+   vec2 q=gl_PointCoord-vec2(0.5);
+   float r=length(q)*2.0;
+   if(r>1.0)discard;
+
+   // Bright stellar core with a soft outer falloff.
+   float core=1.0-smoothstep(0.0,0.42,r);
+   float halo=1.0-smoothstep(0.15,1.0,r);
+   float alpha=core*0.95+halo*0.18;
+
+   vec3 color=vColor*(0.75+core*0.65);
+   gl_FragColor=vec4(color,alpha);
+ }`,
+
   transparent:true,depthWrite:false,vertexColors:false,blending:THREE.AdditiveBlending
  });
  const points=new THREE.Points(geo,mat);points.frustumCulled=false;return points;
