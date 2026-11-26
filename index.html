@@ -170,36 +170,322 @@ button.active{
   }
 }
 
+/* ==========================================
+   STARMAP - Unified futuristic sidebar
+   ========================================== */
+
+#sidebar {
+  position: fixed;
+  left: 18px;
+  top: 18px;
+  bottom: 18px;
+  width: 290px;
+  max-height: calc(100vh - 36px);
+  padding: 0 15px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: rgba(4, 15, 30, .68);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+
+  scrollbar-width: thin;
+  scrollbar-color: #285477 transparent;
+}
+
+.sidebar-head {
+  padding: 20px 3px 16px;
+}
+
+.sidebar-head h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: .22em;
+  font-weight: 700;
+  color: #dff7ff;
+  text-shadow: 0 0 15px #39bde977;
+}
+
+.sidebar-head .sub {
+  margin-top: 5px;
+  font-size: 10px;
+  letter-spacing: .12em;
+}
+
+/* Glowing separators */
+
+.sidebar-section {
+  position: relative;
+  padding: 17px 3px;
+  border-top: 1px solid rgba(65, 167, 220, .35);
+  box-shadow: 0 -3px 10px rgba(34, 145, 210, .09);
+}
+
+.sidebar-section > strong {
+  display: block;
+  font-size: 11px;
+  letter-spacing: .13em;
+  color: #9edfff;
+  margin-bottom: 12px;
+}
+
+/* Search */
+
+#search {
+  position: relative;
+  width: auto;
+  display: block;
+  padding: 17px 3px;
+}
+
+.search-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+#search input {
+  min-width: 0;
+  flex: 1;
+  padding: 9px;
+  background: rgba(5, 23, 43, .75);
+  border: 1px solid rgba(67, 145, 190, .55);
+  color: #e5f6ff;
+  font: 11px ui-monospace, monospace;
+}
+
+#search input:focus {
+  outline: none;
+  border-color: #65dfff;
+  box-shadow: 0 0 12px #36b9ed44;
+}
+
+#search input::placeholder {
+  color: #66849f;
+}
+
+#searchResult {
+  position: relative;
+  margin-top: 7px;
+  background: rgba(5, 23, 43, .8);
+  border: 1px solid var(--line);
+  padding: 8px;
+  font-size: 11px;
+}
+
+/* View and layer controls */
+
+#controls {
+  position: static;
+  width: auto;
+  max-width: none;
+  padding: 17px 3px;
+  display: block;
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.control-grid button {
+  width: 100%;
+  padding: 10px 6px;
+  text-align: center;
+  font-size: 10px;
+  background: rgba(13, 37, 59, .68);
+}
+
+#sun {
+  grid-column: span 2;
+}
+
+/* Selected object */
+
+#inspect {
+  position: static;
+  display: none;
+  width: auto;
+  padding: 17px 3px;
+}
+
+#inspectName {
+  color: #65dfff;
+  font-size: 14px;
+  font-weight: 650;
+  margin-bottom: 8px;
+  text-shadow: 0 0 9px #39bde944;
+}
+
+#inspectText {
+  margin: 0;
+  color: #c0cee1;
+  font-size: 11px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+/* Legend */
+
+#legend {
+  position: static;
+  width: auto;
+  padding: 17px 3px 20px;
+}
+
+.legendrow {
+  margin: 9px 0;
+  font-size: 11px;
+}
+
+.dot {
+  flex-shrink: 0;
+}
+
+.legend-note {
+  margin-top: 12px;
+  color: #819dbb;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+#scale {
+  position: static;
+  margin-top: 17px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(65, 167, 220, .2);
+  color: #9edfff;
+  font-size: 10px;
+  line-height: 1.6;
+  text-align: left;
+  letter-spacing: .08em;
+}
+
+#hint {
+  position: static;
+  margin-top: 12px;
+  color: #819dbb;
+  font-size: 9px;
+  line-height: 1.7;
+  letter-spacing: .07em;
+  text-align: left;
+  transform: none;
+}
+
+/* Status is now part of the legend */
+
+#status {
+  position: static;
+  display: block;
+  max-width: none;
+  margin-top: 14px;
+  padding: 9px 0 0;
+  transform: none;
+  text-align: left;
+  border: 0;
+  border-top: 1px solid rgba(65, 167, 220, .2);
+  background: transparent;
+  border-radius: 0;
+  font-size: 9px;
+  color: #819dbb;
+}
+
+/* Responsive layout */
+
+@media(max-width:700px) {
+  #sidebar {
+    left: 8px;
+    top: 8px;
+    bottom: 8px;
+    width: min(270px, calc(100vw - 16px));
+    max-height: calc(100vh - 16px);
+  }
+}
+
 </style>
 </head>
 <body>
 <div id="scene"></div>
-<div id="head" class="panel"><h1>STARMAP</h1><div class="sub">MILKY WAY EXPLORER · GAIA DR3 + SPIRAL-ARM TRACERS</div></div>
-<div id="controls" class="panel">
-  <button id="top" class="active">TOP</button><button id="edge">EDGE</button><button id="sun">SOLAR SYSTEM</button>
-  <button id="arms" class="active">ARMS</button><button id="stars" class="active">STARS</button>
-</div>
-<div id="search" class="panel"><input id="searchInput" type="search" autocomplete="off" spellcheck="false" placeholder="Search Gaia DR3 source_id… or Sun / Sgr A*"><button id="searchButton">LOCATE</button><div id="searchResult"></div></div>
-<div id="hint">LEFT-DRAG: ORBIT · RIGHT-DRAG: PAN · SCROLL: ZOOM · CLICK: INSPECT</div>
-<div id="scale">GALACTOCENTRIC SCALE<br>1 UNIT = 1 kpc</div>
-<div id="legend" class="panel">
-  <strong>DISPLAY LAYERS</strong>
-  <div class="legendrow"><i class="dot" style="color:#e8f4ff;background:#e8f4ff"></i> Gaia DR3 field stars</div>
-  <div class="legendrow"><i class="dot" style="color:#f2b66d;background:#f2b66d"></i> Cepheids (tracers)</div>
-  <div class="legendrow"><i class="dot" style="color:#7de4ff;background:#7de4ff"></i> Sagittarius A*</div>
-  <div class="legendrow"><i class="dot" style="color:#c88cff;background:#c88cff"></i> Spiral arms (schematic)</div>
-  <p class="sub">Arm curves are illustrative guides, not physical boundaries.</p>
-</div>
-<div id="inspect" class="panel"><strong>SELECTED OBJECT</strong><p id="inspectText">Select a star to inspect it.</p></div>
-<div id="status">INITIALIZING 3D ENGINE…</div>
-<script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
-</script>
-<script type="module">
-import * as THREE from 'three';
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 
-const status=document.querySelector('#status');
+<aside id="sidebar" class="panel">
+  <header class="sidebar-head">
+    <h1>STARMAP</h1>
+    <div class="sub">MILKY WAY EXPLORER</div>
+  </header>
+
+  <section id="search" class="sidebar-section">
+    <strong>SEARCH</strong>
+    <div class="search-row">
+      <input id="searchInput" type="search"
+        autocomplete="off" spellcheck="false"
+        placeholder="Gaia DR3 source_id… or Sun / Sgr A*">
+      <button id="searchButton">GO</button>
+    </div>
+    <div id="searchResult"></div>
+  </section>
+
+  <section id="controls" class="sidebar-section">
+    <strong>VIEW &amp; LAYERS</strong>
+    <div class="control-grid">
+      <button id="top" class="active">TOP</button>
+      <button id="edge">EDGE</button>
+      <button id="sun">SOLAR SYSTEM</button>
+      <button id="arms" class="active">ARMS</button>
+      <button id="stars" class="active">STARS</button>
+    </div>
+  </section>
+
+  <section id="inspect" class="sidebar-section">
+    <strong>OBJECT INFORMATION</strong>
+    <div id="inspectName">No object selected</div>
+    <p id="inspectText">Select a star or another object to inspect it.</p>
+  </section>
+
+  <section id="legend" class="sidebar-section">
+    <strong>MAP LEGEND</strong>
+
+    <div class="legendrow">
+      <i class="dot" style="color:#e8f4ff;background:#e8f4ff"></i>
+      Gaia DR3 field stars
+    </div>
+    <div class="legendrow">
+      <i class="dot" style="color:#f2b66d;background:#f2b66d"></i>
+      Cepheids (tracers)
+    </div>
+    <div class="legendrow">
+      <i class="dot" style="color:#7de4ff;background:#7de4ff"></i>
+      Sagittarius A*
+    </div>
+    <div class="legendrow">
+      <i class="dot" style="color:#78b8d8;background:#78b8d8"></i>
+      Spiral arms (schematic)
+    </div>
+
+    <div class="legend-note">
+      Arm curves are illustrative guides, not physical boundaries.
+    </div>
+
+    <div id="scale">
+      GALACTOCENTRIC SCALE<br>1 UNIT = 1 kpc
+    </div>
+
+    <div id="hint">
+      LEFT-DRAG: ORBIT<br>
+      RIGHT-DRAG: PAN<br>
+      SCROLL: ZOOM · CLICK: INSPECT
+    </div>
+
+    <div class="legend-note">
+      Planet sizes exaggerated; orbital distances approximate.
+    </div>
+
+    <div id="status">INITIALIZING 3D ENGINE…</div>
+  </section>
+</aside>
+
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0x050812);
 const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.01,250);
 camera.position.set(0,27,0.01);
@@ -318,6 +604,7 @@ function addSolarSystem(){
     new THREE.SphereGeometry(.55,32,24),
     sunMaterial
   );
+  sun.userData.name='Sun';
   solarSystem.add(sun);
 
   const glow=new THREE.PointLight(0xffd18a,3,100);
@@ -641,10 +928,20 @@ async function locateSearch(){
  if(key==='sun'||key==='sol'||key==='the sun'){
   enterSolarSystem();
   showSearchMessage('Located the Sun · Solar System view');
+  showObjectInfo(
+    'Sun',
+    'The star at the centre of our Solar System.'
+  );
   return;
 }
  if(key==='sgr a*'||key==='sagittarius a*'||key==='galactic centre'||key==='galactic center'){
-  markSearchPoint(new THREE.Vector3(0,0,0),'Sagittarius A*');showSearchMessage('Located Sagittarius A* · Galactic Centre');return;
+  markSearchPoint(new THREE.Vector3(0,0,0),'Sagittarius A*');
+  showSearchMessage('Located Sagittarius A* · Galactic Centre');
+  showObjectInfo(
+    'Sagittarius A*',
+    'The supermassive black hole at the Galactic Centre.'
+  );
+  return;
  }
  if(!/^\d{5,20}$/.test(raw)){showSearchMessage('Enter a Gaia DR3 numeric source_id, “Sun”, or “Sgr A*”.',true);return;}
  searchButton.disabled=true;searchButton.textContent='QUERY…';showSearchMessage('Querying the ESA Gaia archive…');
@@ -660,6 +957,12 @@ async function locateSearch(){
   const point=galactocentricFromGaia(ra,dec,parallax);
   markSearchPoint(point,'Gaia '+raw,0x70eaff);
   showSearchMessage(`Gaia DR3 ${raw} · G ${Number.isFinite(gmag)?gmag.toFixed(2):'—'} · BP−RP ${Number.isFinite(bprp)?bprp.toFixed(2):'—'} · distance ${ (1/parallax).toFixed(3)} kpc`);
+    showObjectInfo(
+    'Gaia DR3 '+raw,
+    `G magnitude: ${gmag.toFixed(2)}<br>
+     BP−RP colour: ${bprp.toFixed(2)}<br>
+     Distance: ${(1/parallax).toFixed(3)} kpc`
+  );
  }catch(error){showSearchMessage(error.message||'Gaia lookup failed.',true);}
  finally{searchButton.disabled=false;searchButton.textContent='LOCATE';}
 }
@@ -682,17 +985,66 @@ addEventListener('keydown',e=>{
  camera.position.add(delta);controls.target.add(delta);
 });
 
+function showObjectInfo(name,details){
+  document.querySelector('#inspectName').textContent=name;
+  document.querySelector('#inspectText').innerHTML=details;
+  document.querySelector('#inspect').style.display='block';
+}
+
 renderer.domElement.addEventListener('click',ev=>{
- if(!starPoints||!starsVisible)return;
- pointer.x=ev.clientX/innerWidth*2-1;pointer.y=-(ev.clientY/innerHeight)*2+1;
- raycaster.setFromCamera(pointer,camera);raycaster.params.Points.threshold=Math.max(.035,camera.position.distanceTo(controls.target)*.003);
- const hits=raycaster.intersectObject(starPoints);
- if(!hits.length)return;
- const i=hits[0].index,meta=i*2;
- const p=new THREE.Vector3(starPositions[i*3],starPositions[i*3+1],starPositions[i*3+2]);
- document.querySelector('#inspect').style.display='block';
- document.querySelector('#inspectText').innerHTML=`Gaia DR3 catalogue point (source_id not stored in render file)<br>Galactocentric position: ${p.x.toFixed(3)}, ${p.z.toFixed(3)}, ${p.y.toFixed(3)} kpc<br>BP−RP colour: ${starMeta[meta].toFixed(2)}<br>G magnitude: ${starMeta[meta+1].toFixed(2)}`;
+  pointer.x=ev.clientX/innerWidth*2-1;
+  pointer.y=-(ev.clientY/innerHeight)*2+1;
+
+  raycaster.setFromCamera(pointer,camera);
+
+  // Solar System: inspect planets and the Sun.
+  if(viewMode==='solar'){
+    const hits=raycaster.intersectObjects(solarSystem.children,false);
+    const hit=hits.find(h=>h.object.userData.name);
+
+    if(!hit)return;
+
+    const object=hit.object;
+    const name=object.userData.name;
+
+    const distance=object.position.length();
+
+    showObjectInfo(
+      name,
+      `Solar System object<br>
+       Distance from Sun: ${distance.toFixed(3)} AU`
+    );
+    return;
+  }
+
+  // Galaxy: inspect Gaia catalogue stars.
+  if(!starPoints||!starsVisible)return;
+
+  raycaster.params.Points.threshold=
+    Math.max(.035,camera.position.distanceTo(controls.target)*.003);
+
+  const hits=raycaster.intersectObject(starPoints);
+  if(!hits.length)return;
+
+  const i=hits[0].index;
+  const meta=i*2;
+
+  const p=new THREE.Vector3(
+    starPositions[i*3],
+    starPositions[i*3+1],
+    starPositions[i*3+2]
+  );
+
+  showObjectInfo(
+    'Gaia DR3 star',
+    `Catalogue point (source_id unavailable)<br>
+     Galactocentric position:<br>
+     ${p.x.toFixed(3)}, ${p.z.toFixed(3)}, ${p.y.toFixed(3)} kpc<br>
+     BP−RP colour: ${starMeta[meta].toFixed(2)}<br>
+     G magnitude: ${starMeta[meta+1].toFixed(2)}`
+  );
 });
+
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);for(const p of starGroup.children){if(p.material?.uniforms?.uViewportHeight)p.material.uniforms.uViewportHeight.value=innerHeight;if(p.material?.uniforms?.uPixelRatio)p.material.uniforms.uPixelRatio.value=Math.min(devicePixelRatio,2);}});
 function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
 </script>
