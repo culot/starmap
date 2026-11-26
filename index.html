@@ -409,10 +409,11 @@ button.active{
 }
 
   /* Explicit sidebar section order */
-#search   { order: 1; }
-#controls { order: 2; }
-#inspect  { order: 3; }
-#legend   { order: 4; }
+ #sidebar > .sidebar-head { order: 0; }
+ #sidebar > #search       { order: 1; }
+ #sidebar > #controls     { order: 2; }
+ #sidebar > #inspect      { order: 3; }
+ #sidebar > #legend       { order: 4; }
 
 </style>
 </head>
