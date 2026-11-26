@@ -283,11 +283,11 @@ function addDisk(){
    const a=arm.start+Math.log(r/r0)/pitch;
    pts.push(new THREE.Vector3(r*Math.cos(a),0.015,r*Math.sin(a)));
   }
-  armGroup.add(line(pts,arm.color,.62));
+  armGroup.add(line(pts,armColor,.42));
   // Faint ribbon-like neighboring curves
   for(const offset of [-.035,.035]){
    const q=pts.map((p)=>new THREE.Vector3(p.x*Math.cos(offset)-p.z*Math.sin(offset),p.y,p.x*Math.sin(offset)+p.z*Math.cos(offset)));
-   armGroup.add(line(q,arm.color,.12));
+   armGroup.add(line(q,armColor,.10));
   }
  }
 }
