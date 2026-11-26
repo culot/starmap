@@ -49,6 +49,127 @@ button:hover,button.active{background:linear-gradient(135deg,#17466a,#102a45);bo
 #head h1{letter-spacing:.18em;color:#dff7ff;text-shadow:0 0 14px #39bde955}
 #status{border-radius:0;border-color:#285477;background:#061426d9;letter-spacing:.05em}\n@media(max-width:700px){#search{top:76px;left:10px;width:min(320px,calc(100vw - 20px))}}
 @media(max-width:700px){#head{top:10px;left:10px}#controls{top:auto;bottom:170px;right:10px;max-width:180px}#legend{left:10px;bottom:10px;width:190px}#status{bottom:10px;max-width:calc(100vw - 220px);left:auto;right:10px;transform:none}#hint{display:none}#scale{top:100px;right:12px}}
+
+/* Translucent HUD panels */
+:root{
+  --panel:rgba(5,18,36,.48);
+}
+
+.panel{
+  background:var(--panel);
+  backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+}
+
+/* Softer, translucent controls */
+button{
+  background:rgba(13,34,55,.72);
+}
+
+button:hover,
+button.active{
+  background:rgba(23,70,106,.72);
+}
+
+#search input{
+  background:rgba(6,20,38,.72);
+}
+
+#searchResult{
+  background:rgba(6,20,38,.88);
+}
+
+/* Header at the top right */
+#head{
+  left:auto;
+  right:18px;
+}
+
+/* Vertical navigation panel */
+#controls{
+  left:18px;
+  right:auto;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  flex-direction:column;
+  flex-wrap:nowrap;
+  width:150px;
+  max-width:none;
+  justify-content:flex-start;
+  gap:8px;
+}
+
+#controls button{
+  width:100%;
+  text-align:left;
+}
+
+/* Search stays at the upper left */
+#search{
+  left:18px;
+  top:18px;
+  width:min(360px,calc(100vw - 210px));
+}
+
+/* Move legend to the lower right */
+#legend{
+  left:auto;
+  right:18px;
+  bottom:18px;
+}
+
+/* Selected-object panel */
+#inspect{
+  right:18px;
+  bottom:170px;
+}
+
+/* Mobile layout */
+@media(max-width:700px){
+  #head{
+    top:10px;
+    right:10px;
+    max-width:180px;
+  }
+
+  #search{
+    top:76px;
+    left:10px;
+    width:min(320px,calc(100vw - 20px));
+  }
+
+  #controls{
+    left:10px;
+    right:auto;
+    top:auto;
+    bottom:10px;
+    transform:none;
+    width:145px;
+    flex-direction:row;
+    flex-wrap:wrap;
+  }
+
+  #controls button{
+    width:auto;
+    flex:1 1 55px;
+    text-align:center;
+    padding:7px 5px;
+  }
+
+  #legend{
+    right:10px;
+    left:auto;
+    bottom:10px;
+    width:180px;
+  }
+
+  #inspect{
+    right:10px;
+    bottom:170px;
+  }
+}
+
 </style>
 </head>
 <body>
