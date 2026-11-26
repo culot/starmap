@@ -268,13 +268,13 @@ function addDisk(){
   const pts=[];for(let i=0;i<=256;i++){const a=i/256*Math.PI*2;pts.push(new THREE.Vector3(r*Math.cos(a),0,r*Math.sin(a)));}
   armGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),ringMat));
  }
- // Four logarithmic-arm guides: deliberately labelled as a schematic guide.
  const arms=[
-  {name:'Perseus',start:.25,color:0xc58aff},
-  {name:'Scutum–Centaurus',start:2.05,color:0x76bfff},
-  {name:'Sagittarius–Carina',start:3.8,color:0xffa76b},
-  {name:'Norma–Outer',start:5.45,color:0x65dfd0}
- ];
+   {name:'Perseus',start:.25},
+   {name:'Scutum–Centaurus',start:2.05},
+   {name:'Sagittarius–Carina',start:3.8},
+   {name:'Norma–Outer',start:5.45}
+  ];
+ const armColor=0x78b8d8;
  const pitch= Math.tan(12.5*Math.PI/180),r0=2.5;
  for(const arm of arms){
   const pts=[];
