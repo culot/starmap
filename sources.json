@@ -1,0 +1,6 @@
+{
+  "gaia_stars_binary": "https://raw.githubusercontent.com/hertjo/milky-way-sim/main/public/milkyway/stars.bin",
+  "reid_masers": "https://raw.githubusercontent.com/hertjo/milky-way-sim/main/public/milkyway/masers.json",
+  "gaia_dr3_tap": "https://gea.esac.esa.int/tap-server/tap/sync",
+  "upstream_project": "https://github.com/hertjo/milky-way-sim"
+}

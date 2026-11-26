@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Starmap — Milky Way Explorer</title>
+<style>
+:root{color-scheme:dark;--bg:#030914;--panel:rgba(5,18,36,.72);--line:rgba(82,177,226,.34);--muted:#819dbb;--cyan:#65dfff;--blue:#287dbb}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font:14px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;color:#e9f2ff}
+#scene{position:fixed;inset:0}canvas{display:block}
+.panel{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:0;clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,13px 100%,0 calc(100% - 13px));backdrop-filter:blur(18px) saturate(135%);-webkit-backdrop-filter:blur(18px) saturate(135%);box-shadow:0 10px 38px #0009,inset 0 0 22px #16436b22}
+
+.panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(var(--cyan),var(--cyan)) left top / 22px 1px no-repeat,
+        linear-gradient(var(--cyan),var(--cyan)) left top / 1px 22px no-repeat,
+        linear-gradient(var(--cyan),var(--cyan)) right 13px top / 22px 1px no-repeat,
+        linear-gradient(var(--cyan),var(--cyan)) right top 13px / 1px 22px no-repeat,
+        linear-gradient(var(--cyan),var(--cyan)) left 13px bottom / 22px 1px no-repeat,
+        linear-gradient(var(--cyan),var(--cyan)) left bottom 13px / 1px 22px no-repeat,
+        linear-gradient(var(--cyan),var(--cyan)) right bottom / 22px 1px no-repeat,
+        linear-gradient(var(--cyan),var(--cyan)) right bottom / 1px 22px no-repeat;
+    opacity: .85;
+}
+
+#head{top:18px;left:18px;padding:14px 17px;max-width:min(440px,calc(100vw - 36px))}
+h1{font-size:17px;margin:0 0 3px;letter-spacing:.02em;font-weight:650}.sub{color:var(--muted);font-size:12px}
+#controls{top:18px;right:18px;padding:10px;display:flex;gap:7px;flex-wrap:wrap;max-width:380px;justify-content:flex-end}
+button{background:linear-gradient(135deg,#10263d,#0a172a);color:#cdeaff;border:1px solid #315d7c;border-radius:0;padding:8px 11px;font:600 11px/1.2 ui-sans-serif,system-ui,sans-serif;letter-spacing:.09em;cursor:pointer;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,0 100%);transition:background .18s,border-color .18s}
+button:hover,button.active{background:linear-gradient(135deg,#17466a,#102a45);border-color:#65dfff;color:white;box-shadow:0 0 14px #2b9bc944}
+#legend{left:18px;bottom:18px;padding:13px 15px;width:220px}
+#legend strong,#inspect strong{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#b9cce5;margin-bottom:8px}
+.legendrow{display:flex;align-items:center;gap:9px;color:#c4d2e5;font-size:12px;margin:6px 0}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;box-shadow:0 0 9px currentColor}
+#inspect{right:18px;bottom:18px;padding:14px 16px;width:min(290px,calc(100vw - 36px));display:none}
+#inspect p{margin:5px 0;color:#c0cee1;font-size:12px}
+#status{position:fixed;left:50%;bottom:19px;transform:translateX(-50%);padding:8px 12px;border-radius:9px;background:#080f1dcc;border:1px solid var(--line);font-size:11px;color:#aabbd2;max-width:calc(100vw - 500px);text-align:center}
+#scale{position:fixed;right:20px;top:88px;color:#9aabc3;font-size:11px;text-align:right}
+#hint{position:fixed;left:50%;top:18px;transform:translateX(-50%);color:#77a9ca;font-size:10px;letter-spacing:.1em;pointer-events:none;text-align:center}
+#search{top:94px;left:18px;padding:11px;width:min(360px,calc(100vw - 36px));display:flex;gap:7px;align-items:center}
+#search input{min-width:0;flex:1;background:#061426dd;border:1px solid #285477;color:#e5f6ff;padding:9px 10px;border-radius:0;font:12px ui-monospace,monospace;outline:none}
+#search input:focus{border-color:var(--cyan);box-shadow:0 0 12px #36b9ed33}
+#search input::placeholder{color:#66849f}
+#searchResult{position:absolute;top:calc(100% + 6px);left:0;right:0;color:#9fc8e3;font-size:11px;background:#061426eF;border:1px solid var(--line);padding:8px 10px;display:none}
+#head h1{letter-spacing:.18em;color:#dff7ff;text-shadow:0 0 14px #39bde955}
+#status{border-radius:0;border-color:#285477;background:#061426d9;letter-spacing:.05em}\n@media(max-width:700px){#search{top:76px;left:10px;width:min(320px,calc(100vw - 20px))}}
+@media(max-width:700px){#head{top:10px;left:10px}#controls{top:auto;bottom:170px;right:10px;max-width:180px}#legend{left:10px;bottom:10px;width:190px}#status{bottom:10px;max-width:calc(100vw - 220px);left:auto;right:10px;transform:none}#hint{display:none}#scale{top:100px;right:12px}}
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div id="head" class="panel"><h1>STARMAP</h1><div class="sub">MILKY WAY EXPLORER · GAIA DR3 + SPIRAL-ARM TRACERS</div></div>
+<div id="controls" class="panel">
+  <button id="top" class="active">TOP</button><button id="edge">EDGE</button><button id="sun">SUN</button>
+  <button id="arms" class="active">ARMS</button><button id="stars" class="active">STARS</button>
+</div>
+<div id="search" class="panel"><input id="searchInput" type="search" autocomplete="off" spellcheck="false" placeholder="Search Gaia DR3 source_id… or Sun / Sgr A*"><button id="searchButton">LOCATE</button><div id="searchResult"></div></div>
+<div id="hint">LEFT-DRAG: ORBIT · RIGHT-DRAG: PAN · SCROLL: ZOOM · CLICK: INSPECT</div>
+<div id="scale">GALACTOCENTRIC SCALE<br>1 UNIT = 1 kpc</div>
+<div id="legend" class="panel">
+  <strong>DISPLAY LAYERS</strong>
+  <div class="legendrow"><i class="dot" style="color:#e8f4ff;background:#e8f4ff"></i> Gaia DR3 field stars</div>
+  <div class="legendrow"><i class="dot" style="color:#f2b66d;background:#f2b66d"></i> Cepheids (tracers)</div>
+  <div class="legendrow"><i class="dot" style="color:#7de4ff;background:#7de4ff"></i> Sagittarius A*</div>
+  <div class="legendrow"><i class="dot" style="color:#c88cff;background:#c88cff"></i> Spiral arms (schematic)</div>
+  <p class="sub">Arm curves are illustrative guides, not physical boundaries.</p>
+</div>
+<div id="inspect" class="panel"><strong>SELECTED OBJECT</strong><p id="inspectText">Select a star to inspect it.</p></div>
+<div id="status">INITIALIZING 3D ENGINE…</div>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const status=document.querySelector('#status');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x050812);
+const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.01,250);
+camera.position.set(0,27,0.01);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;document.querySelector('#scene').appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.065;controls.enablePan=true;controls.screenSpacePanning=true;controls.minDistance=.12;controls.maxDistance=100;controls.target.set(0,0,0);
+const galaxy=new THREE.Group();scene.add(galaxy);
+const starGroup=new THREE.Group();galaxy.add(starGroup);
+const armGroup=new THREE.Group();galaxy.add(armGroup);
+const markerGroup=new THREE.Group();galaxy.add(markerGroup);
+const raycaster=new THREE.Raycaster();raycaster.params.Points.threshold=.11;
+const pointer=new THREE.Vector2();let starPoints=null,starPositions=null,starMeta=null;
+let starsVisible=true,armsVisible=true;
+
+function makePointCloud(positions,colors,sizes=1.0){
+ const geo=new THREE.BufferGeometry();
+ geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+ if(colors)geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+ const mat=new THREE.ShaderMaterial({
+  uniforms:{uPixelRatio:{value:Math.min(devicePixelRatio,2)},uViewportHeight:{value:innerHeight},uPointSize:{value:sizes*3.2}},
+  vertexShader:`attribute vec3 color; varying vec3 vColor; varying float vDepth;
+   uniform float uPixelRatio; uniform float uViewportHeight; uniform float uPointSize;
+   void main(){vColor=color;vec4 mv=modelViewMatrix*vec4(position,1.0);vDepth=-mv.z;
+    float focal=uViewportHeight/(2.0*tan(radians(48.0)*0.5));
+    gl_PointSize=clamp(uPointSize*focal/max(0.1,vDepth)*uPixelRatio,1.0,18.0);
+    gl_Position=projectionMatrix*mv;}`,
+  fragmentShader:`varying vec3 vColor; varying float vDepth;
+   void main(){vec2 q=gl_PointCoord-vec2(0.5);float r=length(q)*2.0;
+    if(r>1.0)discard;float nz=sqrt(max(0.0,1.0-r*r));
+    vec3 n=normalize(vec3(-q.x,-q.y,nz));vec3 light=normalize(vec3(-0.35,0.48,0.82));
+    float diffuse=0.38+0.72*max(dot(n,light),0.0);
+    float rim=pow(1.0-nz,2.4)*0.22;
+    float edge=1.0-smoothstep(0.82,1.0,r);
+    gl_FragColor=vec4(vColor*(diffuse+rim),edge*0.98);}`,
+  transparent:true,depthWrite:false,vertexColors:false,blending:THREE.AdditiveBlending
+ });
+ const points=new THREE.Points(geo,mat);points.frustumCulled=false;return points;
+}
+function line(points,color,opacity=.55){
+ const g=new THREE.BufferGeometry().setFromPoints(points);
+ const m=new THREE.LineBasicMaterial({color,transparent:true,opacity});
+ return new THREE.Line(g,m);
+}
+// Galaxy disk and subtle rings, all in galactocentric kpc.
+function addDisk(){
+ const ringMat=new THREE.LineBasicMaterial({color:0x29415f,transparent:true,opacity:.22});
+ for(const r of [2,4,6,8,10,12,14,16]){
+  const pts=[];for(let i=0;i<=256;i++){const a=i/256*Math.PI*2;pts.push(new THREE.Vector3(r*Math.cos(a),0,r*Math.sin(a)));}
+  armGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),ringMat));
+ }
+ // Four logarithmic-arm guides: deliberately labelled as a schematic guide.
+ const arms=[
+  {name:'Perseus',start:.25,color:0xc58aff},
+  {name:'Scutum–Centaurus',start:2.05,color:0x76bfff},
+  {name:'Sagittarius–Carina',start:3.8,color:0xffa76b},
+  {name:'Norma–Outer',start:5.45,color:0x65dfd0}
+ ];
+ const pitch= Math.tan(12.5*Math.PI/180),r0=2.5;
+ for(const arm of arms){
+  const pts=[];
+  for(let i=0;i<=260;i++){
+   const r=2.2+i/260*14.5;
+   const a=arm.start+Math.log(r/r0)/pitch;
+   pts.push(new THREE.Vector3(r*Math.cos(a),0.015,r*Math.sin(a)));
+  }
+  armGroup.add(line(pts,arm.color,.62));
+  // Faint ribbon-like neighboring curves
+  for(const offset of [-.035,.035]){
+   const q=pts.map((p)=>new THREE.Vector3(p.x*Math.cos(offset)-p.z*Math.sin(offset),p.y,p.x*Math.sin(offset)+p.z*Math.cos(offset)));
+   armGroup.add(line(q,arm.color,.12));
+  }
+ }
+}
+function addMarker(x,y,z,color,size,label){
+ const mesh=new THREE.Mesh(new THREE.SphereGeometry(size,16,12),new THREE.MeshBasicMaterial({color}));
+ mesh.position.set(x,y,z);markerGroup.add(mesh);
+ const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:textTexture(label),transparent:true,depthWrite:false}));
+ sprite.position.set(x,y+size*2.8,z);sprite.scale.set(Math.max(1.1,label.length*.12),.28,1);markerGroup.add(sprite);
+}
+function textTexture(text){
+ const c=document.createElement('canvas');c.width=512;c.height=96;const x=c.getContext('2d');
+ x.font='bold 42px system-ui';x.fillStyle='#d9f4ff';x.shadowColor='#58cfff';x.shadowBlur=12;x.fillText(text,8,60);
+ const t=new THREE.CanvasTexture(c);return t;
+}
+addDisk();
+addMarker(0,0,0,0x7de4ff,.19,'Sagittarius A*');
+addMarker(-8.122,.0208,0,0xffdf91,.13,'Sun');
+const sunRing=new THREE.Mesh(new THREE.RingGeometry(.19,.23,48),new THREE.MeshBasicMaterial({color:0xffdf91,side:THREE.DoubleSide,transparent:true,opacity:.8}));
+sunRing.rotation.x=-Math.PI/2;sunRing.position.set(-8.122,.025,0);markerGroup.add(sunRing);
+
+function loadMaserAnchors(){
+ // Public Reid+2019 maser catalog distributed with the reference implementation.
+ fetch('https://raw.githubusercontent.com/hertjo/milky-way-sim/main/public/milkyway/masers.json')
+ .then(r=>r.json()).then(rows=>{
+  if(!Array.isArray(rows))return;
+  const pos=[],col=[];
+  for(const d of rows){
+   const x=Number(d.x??d.x_kpc),y=Number(d.y??d.y_kpc??0),z=Number(d.z??d.z_kpc);
+   if(!Number.isFinite(x)||!Number.isFinite(z))continue;
+   pos.push(x,y,z);col.push(.95,.62,.36);
+  }
+  if(pos.length){const p=makePointCloud(pos,col,.095);p.name='maser-anchors';armGroup.add(p);}
+ }).catch(()=>{});
+}
+loadMaserAnchors();
+
+async function loadGaia(){
+ status.textContent='DOWNLOADING PRECOMPILED GAIA DR3 CATALOGUE…';
+ const url='https://media.githubusercontent.com/media/hertjo/milky-way-sim/main/public/milkyway/stars.bin';
+ try{
+  const response=await fetch(url);
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const buf=await response.arrayBuffer();
+  if(buf.byteLength<32 || buf.byteLength%32!==0)throw new Error('Unexpected Gaia binary format (expected 32 bytes per star).');
+  const data=new Float32Array(buf),n=data.length/8;
+  const positions=new Float32Array(n*3),colors=new Float32Array(n*3);
+  starMeta=new Float32Array(n*2);
+  for(let i=0;i<n;i++){
+   const s=i*8,o=i*3;
+   positions[o]=data[s];positions[o+1]=data[s+2];positions[o+2]=data[s+1];
+   colors[o]=data[s+5];colors[o+1]=data[s+6];colors[o+2]=data[s+7];
+   starMeta[i*2]=data[s+3];starMeta[i*2+1]=data[s+4];
+  }
+  starPositions=positions;starPoints=makePointCloud(positions,colors,.026);starPoints.name='Gaia DR3';
+  starGroup.add(starPoints);
+  status.textContent=n.toLocaleString('en-US')+' Gaia DR3 stars loaded · public precompiled catalogue';
+ }catch(err){
+  console.error(err);
+  status.textContent='Remote Gaia catalogue unavailable. Check your connection or see README for local setup.';
+ }
+}
+loadGaia();
+
+function setView(kind){
+ const dest={top:[0,27,.01],edge:[0,.35,27],sun:[-8.122,1.1,0]}[kind];
+ const start=camera.position.clone(),target=new THREE.Vector3(...dest),startTarget=controls.target.clone();
+ let t=0;
+ function tween(){
+  t=Math.min(1,t+.025);const e=t*t*(3-2*t);
+  camera.position.copy(start).lerp(target,e);controls.target.copy(startTarget).lerp(new THREE.Vector3(0,0,0),e);
+  if(t<1)requestAnimationFrame(tween);
+ }
+ tween();
+}
+document.querySelector('#top').onclick=()=>setView('top');
+document.querySelector('#edge').onclick=()=>setView('edge');
+document.querySelector('#sun').onclick=()=>setView('sun');
+document.querySelector('#arms').onclick=e=>{armsVisible=!armsVisible;armGroup.visible=armsVisible;e.currentTarget.classList.toggle('active',armsVisible)};
+document.querySelector('#stars').onclick=e=>{starsVisible=!starsVisible;starGroup.visible=starsVisible;e.currentTarget.classList.toggle('active',starsVisible)};
+for(const id of ['top','edge','sun'])document.getElementById(id).onclick=()=>{document.querySelectorAll('#controls button').forEach(b=>{if(['top','edge','sun'].includes(b.id))b.classList.toggle('active',b.id===id)});setView(id)};
+
+// Gaia DR3 lookup: the compact display binary intentionally does not store source_id.
+const searchInput=document.querySelector('#searchInput');
+const searchButton=document.querySelector('#searchButton');
+const searchResult=document.querySelector('#searchResult');
+let searchMarker=null;
+function showSearchMessage(message,isError=false){
+ searchResult.textContent=message;searchResult.style.display='block';
+ searchResult.style.color=isError?'#ff9b9b':'#9fc8e3';
+}
+function galactocentricFromGaia(raDeg,decDeg,parallaxMas){
+ const d=1/parallaxMas,ra=THREE.MathUtils.degToRad(raDeg),dec=THREE.MathUtils.degToRad(decDeg);
+ const cd=Math.cos(dec),xeq=d*cd*Math.cos(ra),yeq=d*cd*Math.sin(ra),zeq=d*Math.sin(dec);
+ const m=[-.0548755604,-.8734370902,-.4838350155,.4941094279,-.4448296300,.7469822445,-.8676661490,-.1980763734,.4559837762];
+ const xg=m[0]*xeq+m[1]*yeq+m[2]*zeq;
+ const yg=m[3]*xeq+m[4]*yeq+m[5]*zeq;
+ const zg=m[6]*xeq+m[7]*yeq+m[8]*zeq;
+ // Scene axes: X = Galactic X, Y = Galactic Z (height), Z = Galactic Y.
+ return new THREE.Vector3(xg-8.122,zg+.0208,yg);
+}
+function flyToPoint(point){
+ const offset=camera.position.clone().sub(controls.target);
+ if(offset.length()<.1)offset.set(0,5,12);
+ const start=camera.position.clone(),startTarget=controls.target.clone(),endTarget=point.clone();
+ const endCamera=endTarget.clone().add(offset);
+ let t=0;
+ function step(){t=Math.min(1,t+.025);const e=t*t*(3-2*t);
+  camera.position.copy(start).lerp(endCamera,e);controls.target.copy(startTarget).lerp(endTarget,e);
+  if(t<1)requestAnimationFrame(step);
+ }
+ step();
+}
+function markSearchPoint(point,label,color=0x75e7ff){
+ if(searchMarker){galaxy.remove(searchMarker);searchMarker=null;}
+ const group=new THREE.Group();
+ const sphere=new THREE.Mesh(new THREE.SphereGeometry(.12,20,16),new THREE.MeshBasicMaterial({color}));
+ group.add(sphere);
+ const ring=new THREE.Mesh(new THREE.RingGeometry(.17,.21,48),new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,opacity:.9}));
+ ring.rotation.x=-Math.PI/2;group.add(ring);
+ group.position.copy(point);galaxy.add(group);searchMarker=group;
+ flyToPoint(point);
+}
+async function locateSearch(){
+ const raw=searchInput.value.trim();if(!raw)return;
+ const key=raw.toLowerCase();
+ if(key==='sun'||key==='sol'||key==='the sun'){
+  const p=new THREE.Vector3(-8.122,.0208,0);markSearchPoint(p,'Sun',0xffdf91);
+  showSearchMessage('Located the Sun · galactocentric distance 8.122 kpc');return;
+ }
+ if(key==='sgr a*'||key==='sagittarius a*'||key==='galactic centre'||key==='galactic center'){
+  markSearchPoint(new THREE.Vector3(0,0,0),'Sagittarius A*');showSearchMessage('Located Sagittarius A* · Galactic Centre');return;
+ }
+ if(!/^\d{5,20}$/.test(raw)){showSearchMessage('Enter a Gaia DR3 numeric source_id, “Sun”, or “Sgr A*”.',true);return;}
+ searchButton.disabled=true;searchButton.textContent='QUERY…';showSearchMessage('Querying the ESA Gaia archive…');
+ try{
+  const adql=`SELECT TOP 1 source_id,ra,dec,parallax,phot_g_mean_mag,bp_rp FROM gaiadr3.gaia_source WHERE source_id=${raw} AND parallax>0`;
+  const url='https://gea.esac.esa.int/tap-server/tap/sync?'+new URLSearchParams({REQUEST:'doQuery',LANG:'ADQL',FORMAT:'csv',QUERY:adql});
+  const response=await fetch(url);if(!response.ok)throw new Error('Gaia TAP returned HTTP '+response.status);
+  const csv=(await response.text()).trim().split(/\r?\n/);
+  if(csv.length<2||csv[1].startsWith('ERROR'))throw new Error('No matching source with a positive parallax was returned.');
+  const fields=csv[1].split(',').map(Number);
+  const [sourceId,ra,dec,parallax,gmag,bprp]=fields;
+  if(![ra,dec,parallax].every(Number.isFinite)||parallax<=0)throw new Error('The Gaia result has no usable positive parallax.');
+  const point=galactocentricFromGaia(ra,dec,parallax);
+  markSearchPoint(point,'Gaia '+raw,0x70eaff);
+  showSearchMessage(`Gaia DR3 ${raw} · G ${Number.isFinite(gmag)?gmag.toFixed(2):'—'} · BP−RP ${Number.isFinite(bprp)?bprp.toFixed(2):'—'} · distance ${ (1/parallax).toFixed(3)} kpc`);
+ }catch(error){showSearchMessage(error.message||'Gaia lookup failed.',true);}
+ finally{searchButton.disabled=false;searchButton.textContent='LOCATE';}
+}
+searchButton.addEventListener('click',locateSearch);
+searchInput.addEventListener('keydown',e=>{if(e.key==='Enter')locateSearch();});
+searchInput.addEventListener('input',()=>{if(!searchInput.value)searchResult.style.display='none';});
+
+// Keyboard panning complements right-mouse dragging. WASD and arrow keys move the view.
+addEventListener('keydown',e=>{
+ if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement)return;
+ const key=e.key.toLowerCase();
+ const directions={arrowleft:[1,0],a:[1,0],arrowright:[-1,0],d:[-1,0],arrowup:[0,-1],w:[0,-1],arrowdown:[0,1],s:[0,1]};
+ if(!directions[key])return;
+ e.preventDefault();
+ const [dx,dy]=directions[key],distance=camera.position.distanceTo(controls.target);
+ const step=distance*(e.shiftKey ? .055 : .018);
+ const right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion);
+ const up=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);
+ const delta=right.multiplyScalar(dx*step).add(up.multiplyScalar(dy*step));
+ camera.position.add(delta);controls.target.add(delta);
+});
+
+renderer.domElement.addEventListener('click',ev=>{
+ if(!starPoints||!starsVisible)return;
+ pointer.x=ev.clientX/innerWidth*2-1;pointer.y=-(ev.clientY/innerHeight)*2+1;
+ raycaster.setFromCamera(pointer,camera);raycaster.params.Points.threshold=Math.max(.035,camera.position.distanceTo(controls.target)*.003);
+ const hits=raycaster.intersectObject(starPoints);
+ if(!hits.length)return;
+ const i=hits[0].index,meta=i*2;
+ const p=new THREE.Vector3(starPositions[i*3],starPositions[i*3+1],starPositions[i*3+2]);
+ document.querySelector('#inspect').style.display='block';
+ document.querySelector('#inspectText').innerHTML=`Gaia DR3 catalogue point (source_id not stored in render file)<br>Galactocentric position: ${p.x.toFixed(3)}, ${p.z.toFixed(3)}, ${p.y.toFixed(3)} kpc<br>BP−RP colour: ${starMeta[meta].toFixed(2)}<br>G magnitude: ${starMeta[meta+1].toFixed(2)}`;
+});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);for(const p of starGroup.children){if(p.material?.uniforms?.uViewportHeight)p.material.uniforms.uViewportHeight.value=innerHeight;if(p.material?.uniforms?.uPixelRatio)p.material.uniforms.uPixelRatio.value=Math.min(devicePixelRatio,2);}});
+function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
+</script>
+</body>
+</html>
