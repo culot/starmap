@@ -462,7 +462,7 @@ button.active{
     </div>
     <div class="legendrow">
       <i class="dot" style="color:#f2b66d;background:#f2b66d"></i>
-      Cepheids (tracers)
+      Maser anchors (Reid et al. 2019)
     </div>
     <div class="legendrow">
       <i class="dot" style="color:#7de4ff;background:#7de4ff"></i>
@@ -560,7 +560,7 @@ fragmentShader:`varying vec3 vColor;
    gl_FragColor=vec4(color,alpha);
  }`,
 
-  transparent:true,depthWrite:false,vertexColors:true,blending:THREE.AdditiveBlending
+  transparent:true,depthWrite:false,vertexColors:false,blending:THREE.AdditiveBlending
  });
  const points=new THREE.Points(geo,mat);points.frustumCulled=false;return points;
 }
@@ -768,6 +768,7 @@ function bpRpToColor(bpRp){
   return [color.r,color.g,color.b];
 }
 
+const status = document.querySelector('#status');
 async function loadGaia(){
  status.textContent='DOWNLOADING PRECOMPILED GAIA DR3 CATALOGUE…';
  const url='https://media.githubusercontent.com/media/hertjo/milky-way-sim/main/public/milkyway/stars.bin';
