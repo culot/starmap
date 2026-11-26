@@ -486,6 +486,19 @@ button.active{
   </section>
 </aside>
 
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0x050812);
 const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.01,250);
 camera.position.set(0,27,0.01);
