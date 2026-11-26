@@ -415,6 +415,36 @@ button.active{
  #sidebar > #inspect      { order: 3; }
  #sidebar > #legend       { order: 4; }
 
+#sidebarToggle {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  #sidebarToggle {
+    display: block;
+    position: fixed;
+    z-index: 1000;
+    top: 12px;
+    left: 12px;
+    width: 40px;
+    height: 40px;
+    background: rgba(4, 15, 30, .85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(65, 167, 220, .55);
+    color: #8eeaff;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  #sidebar.sidebar-collapsed {
+    display: none;
+  }
+
+  #sidebar.sidebar-collapsed + #sidebarToggle {
+    left: 12px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -495,6 +525,8 @@ button.active{
     <div id="status">INITIALIZING 3D ENGINE…</div>
   </section>
 </aside>
+
+<button id="sidebarToggle" aria-label="Collapse sidebar">☰</button>
 
 <script type="importmap">
 {
@@ -1071,6 +1103,20 @@ renderer.domElement.addEventListener('click',ev=>{
 
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);for(const p of starGroup.children){if(p.material?.uniforms?.uViewportHeight)p.material.uniforms.uViewportHeight.value=innerHeight;if(p.material?.uniforms?.uPixelRatio)p.material.uniforms.uPixelRatio.value=Math.min(devicePixelRatio,2);}});
 function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
+
+const sidebar = document.querySelector('#sidebar');
+const sidebarToggle = document.querySelector('#sidebarToggle');
+
+sidebarToggle.addEventListener('click', () => {
+  const collapsed = sidebar.classList.toggle('sidebar-collapsed');
+
+  sidebarToggle.textContent = collapsed ? '☰' : '×';
+  sidebarToggle.setAttribute(
+    'aria-label',
+    collapsed ? 'Expand sidebar' : 'Collapse sidebar'
+  );
+});
+
 </script>
 </body>
 </html>
