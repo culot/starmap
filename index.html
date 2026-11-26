@@ -538,7 +538,7 @@ vertexShader:`attribute vec3 color; varying vec3 vColor;
    vColor=color;
    vec4 mv=modelViewMatrix*vec4(position,1.0);
    float focal=uViewportHeight/(2.0*tan(radians(48.0)*0.5));
-   gl_PointSize=clamp(uPointSize*focal/max(0.1,-mv.z)*uPixelRatio,1.0,6.0);
+   gl_PointSize=clamp(uPointSize*focal/max(0.1,-mv.z)*uPixelRatio,1.0,8.0);
    gl_Position=projectionMatrix*mv;
  }`,
 
@@ -557,7 +557,7 @@ fragmentShader:`varying vec3 vColor;
    gl_FragColor=vec4(color,alpha);
  }`,
 
-  transparent:true,depthWrite:false,vertexColors:false,blending:THREE.AdditiveBlending
+  transparent:true,depthWrite:false,vertexColors:true,blending:THREE.AdditiveBlending
  });
  const points=new THREE.Points(geo,mat);points.frustumCulled=false;return points;
 }
@@ -795,7 +795,7 @@ async function loadGaia(){
    starMeta[i*2+1]=data[s+4];
   }
 
-  starPositions=positions;starPoints=makePointCloud(positions,colors,.026);starPoints.name='Gaia DR3';
+  starPositions=positions;starPoints=makePointCloud(positions,colors,.055);starPoints.name='Gaia DR3';
   starGroup.add(starPoints);
   status.textContent=n.toLocaleString('en-US')+' Gaia DR3 stars loaded · public precompiled catalogue';
  }catch(err){
